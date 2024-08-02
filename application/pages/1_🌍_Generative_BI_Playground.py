@@ -138,11 +138,30 @@ def recurrent_display(messages, i):
     return i
 
 
+def search_same_entity(selected_profile, entity_slot):
+    entity_slot_retrieve = []
+    entity_slot_key_list = set()
+    same_entity_dict = {}
+    for each_entity in entity_slot:
+        entity_retrieve = get_retrieve_opensearch(opensearch_info, each_entity, "ner",
+                                                  selected_profile, 1, 0.7)
+        if each_entity not in entity_slot_key_list:
+            entity_slot_key_list.add(each_entity)
+            entity_slot_retrieve.extend(entity_retrieve)
+    for item in entity_slot_retrieve:
+        if item['_source']['entity_type'] == "dimension":
+            entity_table_info = item['_source']['entity_table_info']
+            if len(entity_table_info) > 1:
+                same_entity_dict[item['_source']['entity']] = entity_table_info
+    return same_entity_dict
+
+
 def normal_text_search_streamlit(search_box, model_type, database_profile, entity_slot, opensearch_info,
                                  selected_profile,
                                  use_rag,
                                  model_provider=None):
     entity_slot_retrieve = []
+    entity_slot_key_list = set()
     retrieve_result = []
     response = ""
     sql = ""
@@ -161,7 +180,9 @@ def normal_text_search_streamlit(search_box, model_type, database_profile, entit
                     entity_retrieve = get_retrieve_opensearch(opensearch_info, each_entity, "ner",
                                                               selected_profile, 1, 0.7)
                     if len(entity_retrieve) > 0:
-                        entity_slot_retrieve.extend(entity_retrieve)
+                        if each_entity not in entity_slot_key_list:
+                            entity_slot_key_list.add(each_entity)
+                            entity_slot_retrieve.extend(entity_retrieve)
             examples = []
             for example in entity_slot_retrieve:
                 examples.append({'Score': example['_score'],
@@ -419,9 +440,10 @@ def main():
                     if prompt_map_flag:
                         ProfileManagement.update_table_prompt_map(selected_profile, prompt_map)
 
+                st.session_state.current_sql_result[selected_profile] = None
                 # Multiple rounds of dialogue, query rewriting
                 user_query_history = get_user_history(selected_profile)
-                query_rewrite_result = {"intent" : "original_problem", "query" :search_box}
+                query_rewrite_result = {"intent": "original_problem", "query": search_box}
                 if context_window > 0:
                     with st.status("Query Context Understanding") as status_text:
                         context_window_select = context_window * 2
@@ -476,6 +498,13 @@ def main():
                     else:
                         search_intent_flag = True
 
+                    # same_entity_dict = search_same_entity(selected_profile, entity_slot)
+                    #
+                    # if len(same_entity_dict) > 0:
+                    #
+                    #     for item, value in same_entity_dict.items():
+                            
+
                     if reject_intent_flag:
                         st.write("Your query statement is currently not supported by the system")
 
@@ -513,7 +542,8 @@ def main():
                             agent_search_result = agent_text_search(search_box, model_type,
                                                                     database_profile,
                                                                     entity_slot, opensearch_info,
-                                                                    selected_profile, use_rag_flag, agent_cot_task_result)
+                                                                    selected_profile, use_rag_flag,
+                                                                    agent_cot_task_result)
                     else:
                         st.error("Intent recognition error")
 
@@ -584,7 +614,8 @@ def main():
                                     search_intent_result["data"]) > 0 and data_with_analyse:
                                 with st.spinner('Generating data summarize...'):
                                     search_intent_analyse_result = data_analyse_tool(model_type, prompt_map, search_box,
-                                                                                     search_intent_result["data"].to_json(
+                                                                                     search_intent_result[
+                                                                                         "data"].to_json(
                                                                                          orient='records',
                                                                                          force_ascii=False), "query")
                                     st.markdown(search_intent_analyse_result)
@@ -642,7 +673,8 @@ def main():
                             st.session_state.messages[selected_profile].append(
                                 {"role": "assistant", "content": current_search_sql_result, "type": "pandas"})
 
-                            do_visualize_results(current_nlq_chain, st.session_state.current_sql_result[selected_profile])
+                            do_visualize_results(current_nlq_chain,
+                                                 st.session_state.current_sql_result[selected_profile])
                         else:
                             st.markdown("No relevant data found")
 
