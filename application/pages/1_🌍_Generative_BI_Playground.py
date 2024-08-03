@@ -1,5 +1,5 @@
 import json
-import os
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -20,7 +20,7 @@ from utils.apis import get_sql_result_tool
 from utils.prompts.generate_prompt import prompt_map_dict
 from utils.opensearch import get_retrieve_opensearch
 from utils.text_search import agent_text_search
-from utils.tool import get_generated_sql
+from utils.tool import get_generated_sql, generate_incremental_alphabet_list
 from utils.env_var import opensearch_info
 
 logger = logging.getLogger(__name__)
@@ -153,7 +153,7 @@ def search_same_entity(selected_profile, entity_slot):
             entity_table_info = item['_source']['entity_table_info']
             if len(entity_table_info) > 1:
                 same_entity_dict[item['_source']['entity']] = entity_table_info
-    return same_entity_dict
+    return same_entity_dict, entity_slot_retrieve
 
 
 def normal_text_search_streamlit(search_box, model_type, database_profile, entity_slot, opensearch_info,
@@ -175,14 +175,18 @@ def normal_text_search_streamlit(search_box, model_type, database_profile, entit
             database_profile['db_type'] = ConnectionManagement.get_db_type_by_name(conn_name)
 
         with st.status("Performing Entity retrieval...") as status_text:
-            if len(entity_slot) > 0 and use_rag:
-                for each_entity in entity_slot:
-                    entity_retrieve = get_retrieve_opensearch(opensearch_info, each_entity, "ner",
-                                                              selected_profile, 1, 0.7)
-                    if len(entity_retrieve) > 0:
-                        if each_entity not in entity_slot_key_list:
-                            entity_slot_key_list.add(each_entity)
-                            entity_slot_retrieve.extend(entity_retrieve)
+            if len(st.session_state.ask_replay_entity_info_answer[selected_profile]) > 0:
+                entity_slot_retrieve = st.session_state.ask_replay_entity_info_answer[selected_profile]
+                st.session_state.ask_replay_entity_info_answer[selected_profile] = []
+            else:
+                if len(entity_slot) > 0 and use_rag:
+                    for each_entity in entity_slot:
+                        entity_retrieve = get_retrieve_opensearch(opensearch_info, each_entity, "ner",
+                                                                  selected_profile, 1, 0.7)
+                        if len(entity_retrieve) > 0:
+                            if each_entity not in entity_slot_key_list:
+                                entity_slot_key_list.add(each_entity)
+                                entity_slot_retrieve.extend(entity_retrieve)
             examples = []
             for example in entity_slot_retrieve:
                 examples.append({'Score': example['_score'],
@@ -274,6 +278,15 @@ def main():
     if 'ask_replay' not in st.session_state:
         st.session_state.ask_replay = False
 
+    if 'ask_replay_entity' not in st.session_state:
+        st.session_state.ask_replay_entity = {}
+
+    if 'ask_replay_entity_info' not in st.session_state:
+        st.session_state.ask_replay_entity_info = {}
+
+    if 'ask_replay_entity_info_answer' not in st.session_state:
+        st.session_state.ask_replay_entity_info_answer = {}
+
     if 'current_profile' not in st.session_state:
         st.session_state['current_profile'] = ''
 
@@ -333,6 +346,13 @@ def main():
             if selected_profile not in st.session_state.query_rewrite_history:
                 st.session_state.query_rewrite_history[selected_profile] = []
             st.session_state.nlq_chain = NLQChain(selected_profile)
+
+        if selected_profile not in st.session_state.ask_replay_entity:
+            st.session_state.ask_replay_entity[selected_profile] = False
+            st.session_state.ask_replay_entity_info[selected_profile] = {}
+
+        if selected_profile not in st.session_state.ask_replay_entity_info_answer:
+            st.session_state.ask_replay_entity_info_answer[selected_profile] = []
 
         if st.session_state.current_model_id != "" and st.session_state.current_model_id in model_ids:
             model_index = model_ids.index(st.session_state.current_model_id)
@@ -441,69 +461,130 @@ def main():
                         ProfileManagement.update_table_prompt_map(selected_profile, prompt_map)
 
                 st.session_state.current_sql_result[selected_profile] = None
-                # Multiple rounds of dialogue, query rewriting
-                user_query_history = get_user_history(selected_profile)
-                query_rewrite_result = {"intent": "original_problem", "query": search_box}
-                if context_window > 0:
-                    with st.status("Query Context Understanding") as status_text:
-                        context_window_select = context_window * 2
-                        user_query_history = user_query_history[-context_window_select:]
-                        logger.info("The Chat history is {history}".format(history="\n".join(user_query_history)))
-                        query_rewrite_result = get_query_rewrite(model_type, search_box, prompt_map, user_query_history)
-                        logger.info("The query_rewrite_result is {query_rewrite_result}".format(
-                            query_rewrite_result=query_rewrite_result))
-                        search_box = query_rewrite_result.get("query")
-                        st.session_state.query_rewrite_history[selected_profile].append(
-                            {"role": "assistant", "content": search_box})
+
+                if st.session_state.ask_replay_entity[selected_profile]:
+                    answer_index_list = st.session_state.ask_replay_entity_info[selected_profile]["index_list"]
+                    answer_entity_index_dict = st.session_state.ask_replay_entity_info[selected_profile]["entity_index_dict"]
+                    answer_entity_slot_retrieve = st.session_state.ask_replay_entity_info[selected_profile]["entity_slot_retrieve"]
+                    answer_select = []
+                    update_entity_info = []
+
+                    for each_index in answer_index_list:
+                        if each_index in search_box:
+                            answer_select.append(each_index)
+                    answer_entity_select_dict = {}
+                    if len(answer_select) > 0:
+                        for each_select_index in answer_select:
+                            if each_select_index in answer_entity_index_dict:
+                                each_entity = each_select_index[each_select_index]["entity"]
+                                if each_entity in answer_entity_select_dict:
+                                    answer_entity_select_dict[each_entity] = answer_entity_select_dict[each_entity] + ", " + each_select_index[each_select_index]["entity_comment"]
+                                else:
+                                    answer_entity_select_dict[each_entity] = each_select_index[each_select_index]["entity_comment"]
+                    for each_slot_info in answer_entity_slot_retrieve:
+                        if each_slot_info['_source']['entity'] in answer_entity_select_dict:
+                            each_slot_info['_source']['comment'] = answer_entity_select_dict[each_slot_info['_source']['entity']]
+                            update_entity_info.append(each_slot_info)
+
+                    logger.info("update_entity_info")
+                    logger.info(update_entity_info)
+                    st.session_state.ask_replay_entity_info_answer[selected_profile] = update_entity_info
+
+                    st.session_state.ask_replay_entity_info[selected_profile] = {}
+
+                    st.session_state.ask_replay_entity[selected_profile] = False
+                else:
+                    # Multiple rounds of dialogue, query rewriting
+                    user_query_history = get_user_history(selected_profile)
+                    query_rewrite_result = {"intent": "original_problem", "query": search_box}
+                    if context_window > 0:
+                        with st.status("Query Context Understanding") as status_text:
+                            context_window_select = context_window * 2
+                            user_query_history = user_query_history[-context_window_select:]
+                            logger.info("The Chat history is {history}".format(history="\n".join(user_query_history)))
+                            query_rewrite_result = get_query_rewrite(model_type, search_box, prompt_map, user_query_history)
+                            logger.info("The query_rewrite_result is {query_rewrite_result}".format(
+                                query_rewrite_result=query_rewrite_result))
+                            search_box = query_rewrite_result.get("query")
+                            st.session_state.query_rewrite_history[selected_profile].append(
+                                {"role": "assistant", "content": search_box})
+                            st.write(search_box)
+                        status_text.update(label=f"Query Context Rewrite Completed", state="complete", expanded=False)
+
+                    query_rewrite_intent = query_rewrite_result.get("intent")
+                    if "ask_in_reply" == query_rewrite_intent:
+                        st.write(query_rewrite_result.get("query"))
                         st.session_state.messages[selected_profile].append(
-                            {"role": "assistant", "content": search_box, "type": "text"})
-                        st.write(search_box)
-                    status_text.update(label=f"Query Context Rewrite Completed", state="complete", expanded=False)
+                            {"role": "assistant", "content": query_rewrite_result.get("query"), "type": "text"})
+                        st.session_state.ask_replay = True
 
-                query_rewrite_intent = query_rewrite_result.get("intent")
-                if "ask_in_reply" == query_rewrite_intent:
-                    st.write(query_rewrite_result.get("query"))
-                    st.session_state.ask_replay = True
+                    if not st.session_state.ask_replay:
+                        intent_response = {
+                            "intent": "normal_search",
+                            "slot": []
+                        }
 
-                if not st.session_state.ask_replay:
-                    intent_response = {
-                        "intent": "normal_search",
-                        "slot": []
-                    }
-
-                    if intent_ner_recognition_flag:
-                        with st.status("Performing intent recognition...") as status_text:
-                            intent_response = get_query_intent(model_type, search_box, prompt_map)
-                            intent = intent_response.get("intent", "normal_search")
-                            entity_slot = intent_response.get("slot", [])
-                            st.write(intent_response)
-                            status_text.update(label=f"Intent Recognition Completed: This is a **{intent}** question",
-                                               state="complete", expanded=False)
-                            if intent == "reject_search":
-                                reject_intent_flag = True
-                                search_intent_flag = False
-                            elif intent == "agent_search":
-                                agent_intent_flag = True
-                                if agent_cot_flag:
+                        if intent_ner_recognition_flag:
+                            with st.status("Performing intent recognition...") as status_text:
+                                intent_response = get_query_intent(model_type, search_box, prompt_map)
+                                intent = intent_response.get("intent", "normal_search")
+                                entity_slot = intent_response.get("slot", [])
+                                st.write(intent_response)
+                                status_text.update(label=f"Intent Recognition Completed: This is a **{intent}** question",
+                                                   state="complete", expanded=False)
+                                if intent == "reject_search":
+                                    reject_intent_flag = True
                                     search_intent_flag = False
+                                elif intent == "agent_search":
+                                    agent_intent_flag = True
+                                    if agent_cot_flag:
+                                        search_intent_flag = False
+                                    else:
+                                        search_intent_flag = True
+                                        agent_intent_flag = False
+                                elif intent == "knowledge_search":
+                                    knowledge_search_flag = True
+                                    search_intent_flag = False
+                                    agent_intent_flag = False
                                 else:
                                     search_intent_flag = True
-                                    agent_intent_flag = False
-                            elif intent == "knowledge_search":
-                                knowledge_search_flag = True
-                                search_intent_flag = False
-                                agent_intent_flag = False
-                            else:
-                                search_intent_flag = True
-                    else:
-                        search_intent_flag = True
+                        else:
+                            search_intent_flag = True
 
-                    # same_entity_dict = search_same_entity(selected_profile, entity_slot)
-                    #
-                    # if len(same_entity_dict) > 0:
-                    #
-                    #     for item, value in same_entity_dict.items():
-                            
+                    if not st.session_state.ask_replay_entity[selected_profile]:
+                        if search_intent_flag:
+                            same_entity_dict, entity_slot_retrieve = search_same_entity(selected_profile, entity_slot)
+                            entity_comment_list = []
+                            entity_comment_list_index = []
+                            entity_info_list = []
+                            entity_index_dict = {}
+                            if len(same_entity_dict) > 0:
+                                for item, value in same_entity_dict.items():
+                                    for each_value in value:
+                                        item_comment = "{entity}，表名：{table_name}， 列名： {column_name}, 维度值： {value}.".format(entity=item, table_name=each_value["table_name"], column_name=each_value["column_name"], value=each_value["value"])
+                                        entity_comment_list.append((item, item_comment))
+                                index_list = generate_incremental_alphabet_list(len(entity_comment_list))
+                                for i in range(len(index_list)):
+                                    entity_comment_list_index.append(index_list[i] + ":" + entity_comment_list[i][1])
+                                    entity_index_dict[index_list[i]] = {}
+                                    entity_index_dict[index_list[i]]["entity"] = entity_comment_list[i][0]
+                                    entity_index_dict[index_list[i]]["entity_comment"] = entity_comment_list[i][1]
+                            if len(entity_comment_list_index) > 0:
+                                st.session_state.ask_replay_entity[selected_profile] = True
+                                st.session_state.ask_replay_entity_info[selected_profile]["entity_slot_retrieve"] = entity_slot_retrieve
+                                st.session_state.ask_replay_entity_info[selected_profile]["same_entity_info"] = same_entity_dict
+                                st.session_state.ask_replay_entity_info[selected_profile]["index_list"] = index_list
+                                st.session_state.ask_replay_entity_info[selected_profile]["search_query"] = search_box
+                                st.session_state.ask_replay_entity_info[selected_profile]["entity_info_list"] = entity_info_list
+                                st.session_state.ask_replay_entity_info[selected_profile]["entity_index_dict"] = entity_index_dict
+
+                                entity_ask_replay = "您的问题中，有实体词包含多个映射值实，请从下面的列表中选择：" + "\n".join(entity_comment_list_index) + "\n" + "请在对话框中输入，您选择的实体编号。"
+
+                                st.write(entity_ask_replay)
+                                st.session_state.messages[selected_profile].append(
+                                    {"role": "assistant", "content": entity_ask_replay, "type": "text"})
+                                st.session_state.ask_replay_entity[selected_profile] = True
+
 
                     if reject_intent_flag:
                         st.write("Your query statement is currently not supported by the system")

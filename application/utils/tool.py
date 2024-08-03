@@ -1,5 +1,6 @@
 import json
 import logging
+import string
 import time
 import random
 from datetime import datetime
@@ -101,3 +102,8 @@ def update_share_data(session_id, search_box, answer):
         chat_list.append(bot_message)
         set_share_data(session_id, chat_list)
         logger.info("have session is %s, share data  is : %s", session_id, len(shared_data[session_id]))
+
+
+def generate_incremental_alphabet_list(length):
+    alphabet = string.ascii_uppercase
+    return list(alphabet[:length])
