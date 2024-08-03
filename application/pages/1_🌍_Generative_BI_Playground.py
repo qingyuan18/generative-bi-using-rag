@@ -551,7 +551,7 @@ def main():
                         else:
                             search_intent_flag = True
 
-                    if not st.session_state.ask_replay_entity[selected_profile]:
+                    if not st.session_state.ask_replay_entity[selected_profile] and not st.session_state.ask_replay:
                         if search_intent_flag:
                             same_entity_dict, entity_slot_retrieve = search_same_entity(selected_profile, entity_slot)
                             entity_comment_list = []
@@ -585,7 +585,7 @@ def main():
                                     {"role": "assistant", "content": entity_ask_replay, "type": "text"})
                                 st.session_state.ask_replay_entity[selected_profile] = True
 
-                    if not st.session_state.ask_replay or not  st.session_state.ask_replay_entity[selected_profile]:
+                    if not st.session_state.ask_replay or not st.session_state.ask_replay_entity[selected_profile]:
                         if reject_intent_flag:
                             st.write("Your query statement is currently not supported by the system")
 
