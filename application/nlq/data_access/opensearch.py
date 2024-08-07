@@ -165,7 +165,7 @@ class OpenSearchDao:
     def add_entity_sample(self, index_name, profile_name, entity, comment, embedding, entity_type="", entity_table_info=[]):
         entity_count = len(entity_table_info)
         comment_value = []
-        item_comment_format = "{entity} is located in table {table_name}, column {column_name},  the dimension value is {value}."
+        item_comment_format = "{entity} is located in table: {table_name}, column: {column_name},  the dimension value is {value}."
         if entity_type == "dimension":
             if entity_count > 0:
                 for item in entity_table_info:

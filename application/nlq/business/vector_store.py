@@ -107,7 +107,6 @@ class VectorStore:
                 for item in same_dimension_value:
                     entity_table_info.append(item)
             logger.info("entity_table_info: " + str(entity_table_info))
-            has_same_sample = cls.search_same_query(profile_name, 1, opensearch_info['ner_index'], embedding)
         if cls.opensearch_dao.add_entity_sample(opensearch_info['ner_index'], profile_name, entity, comment, embedding,
                                                 entity_type, entity_table_info):
             logger.info('Sample added')
