@@ -105,7 +105,7 @@ def main():
                         entity_item_table_info["table_name"] = table
                         entity_item_table_info["column_name"] = column
                         entity_item_table_info["value"] = value
-                        VectorStore.add_entity_sample(current_profile, entity, "", "dimension", entity_item_table_info)
+                        VectorStore.add_entity_sample(current_profile, entity, "", DIMENSION_VALUE, entity_item_table_info)
                         st.success('Sample added')
                         time.sleep(2)
                         st.rerun()
@@ -133,7 +133,7 @@ def main():
             if current_profile is not None:
                 st.write("This page support CSV or Excel files batch insert entity samples.")
                 st.write("**The Column Name need contain 'entity' and 'comment'**")
-                uploaded_files = st.file_uploader("Choose CSV or Excel files", accept_multiple_files=True,
+                uploaded_files = st.file_uploader("Choose CSV or Excel files", accept_multiple_files=False,
                                               type=['csv', 'xls', 'xlsx'], key="add metrics value")
                 if uploaded_files:
                     for i, uploaded_file in enumerate(uploaded_files):
@@ -157,7 +157,7 @@ def main():
             if current_profile is not None:
                 st.write("This page support CSV or Excel files batch insert dimension entity samples.")
                 st.write("**The Column Name need contain 'entity' 'table' 'column' 'value'**")
-                uploaded_files = st.file_uploader("Choose CSV or Excel files", accept_multiple_files=True,
+                uploaded_files = st.file_uploader("Choose CSV or Excel files", accept_multiple_files=False,
                                                   type=['csv', 'xls', 'xlsx'], key="add dimension value")
                 if uploaded_files:
                     for i, uploaded_file in enumerate(uploaded_files):
@@ -173,11 +173,11 @@ def main():
                                 table = str(item.table)
                                 column = str(item.column)
                                 value = str(item.value)
-                                entity_info_dict = {}
-                                entity_info_dict["table_name"] = table
-                                entity_info_dict["column_name"] = column
-                                entity_info_dict["value"] = value
-                                VectorStore.add_entity_sample(current_profile, entity, comment, DIMENSION_VALUE, entity_info_dict)
+                                entity_item_table_info = {}
+                                entity_item_table_info["table_name"] = table
+                                entity_item_table_info["column_name"] = column
+                                entity_item_table_info["value"] = value
+                                VectorStore.add_entity_sample(current_profile, entity, "", DIMENSION_VALUE, entity_item_table_info)
                                 progress = (j * 1.0) / total_rows
                                 progress_bar.progress(progress, text=progress_text)
                             progress_bar.empty()
