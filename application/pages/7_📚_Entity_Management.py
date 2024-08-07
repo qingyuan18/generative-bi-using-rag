@@ -170,8 +170,14 @@ def main():
                             progress_text = "batch insert {} entity  in progress. Please wait.".format(uploaded_file.name)
                             for j, item in enumerate(each_upload_data.itertuples(), 1):
                                 entity = str(item.entity)
-                                comment = str(item.comment)
-                                VectorStore.add_entity_sample(current_profile, entity, comment, DIMENSION_VALUE)
+                                table = str(item.table)
+                                column = str(item.column)
+                                value = str(item.value)
+                                entity_info_dict = {}
+                                entity_info_dict["table_name"] = table
+                                entity_info_dict["column_name"] = column
+                                entity_info_dict["value"] = value
+                                VectorStore.add_entity_sample(current_profile, entity, comment, DIMENSION_VALUE, entity_info_dict)
                                 progress = (j * 1.0) / total_rows
                                 progress_bar.progress(progress, text=progress_text)
                             progress_bar.empty()
