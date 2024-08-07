@@ -134,7 +134,7 @@ def main():
                 st.write("This page support CSV or Excel files batch insert entity samples.")
                 st.write("**The Column Name need contain 'entity' and 'comment'**")
                 uploaded_files = st.file_uploader("Choose CSV or Excel files", accept_multiple_files=True,
-                                              type=['csv', 'xls', 'xlsx'])
+                                              type=['csv', 'xls', 'xlsx'], key="add metrics value")
                 if uploaded_files:
                     for i, uploaded_file in enumerate(uploaded_files):
                         status_text = st.empty()
@@ -158,7 +158,7 @@ def main():
                 st.write("This page support CSV or Excel files batch insert dimension entity samples.")
                 st.write("**The Column Name need contain 'entity' 'table' 'column' 'value' **")
                 uploaded_files = st.file_uploader("Choose CSV or Excel files", accept_multiple_files=True,
-                                                  type=['csv', 'xls', 'xlsx'])
+                                                  type=['csv', 'xls', 'xlsx'], key="add dimension value")
                 if uploaded_files:
                     for i, uploaded_file in enumerate(uploaded_files):
                         status_text = st.empty()
