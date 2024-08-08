@@ -101,7 +101,7 @@ class VectorStore:
             if has_same_sample:
                 logger.info(f'delete sample sample entity: {entity} to profile {profile_name}')
         else:
-            same_dimension_value = cls.search_same_dimension_entity(profile_name, 1, opensearch_info['ner_index'],
+            same_dimension_value = cls.search_same_dimension_entity(profile_name, 5, opensearch_info['ner_index'],
                                                                     embedding)
             if len(same_dimension_value) > 0:
                 for item in same_dimension_value:
@@ -212,13 +212,14 @@ class VectorStore:
         search_res = cls.search_sample_with_embedding(profile_name, top_k, index_name, embedding)
         same_dimension_value = []
         if len(search_res) > 0:
-            similarity_sample = search_res[0]
-            similarity_score = similarity_sample["_score"]
-            if similarity_score == 1.0:
-                if similarity_sample["_source"]["entity_type"] == "dimension":
-                    entity_table_info = similarity_sample["_source"]["entity_table_info"]
-                    for each in entity_table_info:
-                        same_dimension_value.append(each)
-                sample_id = similarity_sample['_id']
-                VectorStore.delete_entity_sample(profile_name, sample_id)
+            for i in range(len(search_res)):
+                similarity_sample = search_res[i]
+                similarity_score = similarity_sample["_score"]
+                if similarity_score == 1.0:
+                    if similarity_sample["_source"]["entity_type"] == "dimension":
+                        entity_table_info = similarity_sample["_source"]["entity_table_info"]
+                        for each in entity_table_info:
+                            same_dimension_value.append(each)
+                    sample_id = similarity_sample['_id']
+                    VectorStore.delete_entity_sample(profile_name, sample_id)
         return same_dimension_value
