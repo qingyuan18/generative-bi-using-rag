@@ -215,8 +215,10 @@ class VectorStore:
             similarity_sample = search_res[0]
             similarity_score = similarity_sample["_score"]
             if similarity_score == 1.0:
-                if index_name == opensearch_info['ner_index']:
+                if similarity_sample["_source"]["entity_type"] == "dimension":
                     entity_table_info = similarity_sample["_source"]["entity_table_info"]
                     for each in entity_table_info:
                         same_dimension_value.append(each)
+                sample_id = similarity_sample['_id']
+                VectorStore.delete_entity_sample(profile_name, sample_id)
         return same_dimension_value
