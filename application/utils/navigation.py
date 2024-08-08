@@ -1,11 +1,13 @@
 import streamlit as st
 import streamlit_authenticator as stauth
+import logging
 from time import sleep
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 from streamlit.source_util import get_pages
 import yaml
 from yaml.loader import SafeLoader
 
+logger = logging.getLogger(__name__)
 
 def get_authenticator():
     with open('config_files/stauth_config.yaml') as file:
@@ -28,8 +30,9 @@ def force_set_cookie(authenticator):
     """
     try:
         authenticator.cookie_handler.set_cookie()
-    except:
-        pass
+    except Exception as e:
+        logger.error("force_set_cookie is error: %s", e)
+
 
 
 def get_current_page_name():

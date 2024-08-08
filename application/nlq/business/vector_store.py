@@ -91,21 +91,26 @@ class VectorStore:
             entity_table_info = []
         else:
             entity_table_info = [entity_info_dict]
+        entity_value_set = set()
+        for entity_table in entity_table_info:
+            entity_value_set.add(entity_table["table_name"] + "#" + entity_table["column_name"] + "#" + entity_table["value"])
         logger.info(f'add sample entity: {entity} to profile {profile_name}')
         if SAGEMAKER_ENDPOINT_EMBEDDING is not None and SAGEMAKER_ENDPOINT_EMBEDDING != "":
             embedding = cls.create_vector_embedding_with_sagemaker(entity)
         else:
             embedding = cls.create_vector_embedding_with_bedrock(entity)
         if entity_type == "metrics":
-            has_same_sample = cls.search_same_query(profile_name, 1, opensearch_info['ner_index'], embedding)
+            has_same_sample = cls.search_same_query(profile_name, 5, opensearch_info['ner_index'], embedding)
             if has_same_sample:
                 logger.info(f'delete sample sample entity: {entity} to profile {profile_name}')
         else:
             same_dimension_value = cls.search_same_dimension_entity(profile_name, 5, opensearch_info['ner_index'],
                                                                     embedding)
             if len(same_dimension_value) > 0:
-                for item in same_dimension_value:
-                    entity_table_info.append(item)
+                for dimension_value in same_dimension_value:
+                    entity_special_id = dimension_value["table_name"] + "#" + dimension_value["column_name"] + "#" + dimension_value["value"]
+                    if entity_special_id not in entity_value_set:
+                        entity_table_info.append(dimension_value)
             logger.info("entity_table_info: " + str(entity_table_info))
         if cls.opensearch_dao.add_entity_sample(opensearch_info['ner_index'], profile_name, entity, comment, embedding,
                                                 entity_type, entity_table_info):
@@ -190,22 +195,20 @@ class VectorStore:
     def search_same_query(cls, profile_name, top_k, index_name, embedding):
         search_res = cls.search_sample_with_embedding(profile_name, top_k, index_name, embedding)
         if len(search_res) > 0:
-            similarity_sample = search_res[0]
-            similarity_score = similarity_sample["_score"]
-            similarity_id = similarity_sample['_id']
-            if similarity_score == 1.0:
-                if index_name == opensearch_info['sql_index']:
-                    cls.delete_sample(profile_name, similarity_id)
-                    return True
-                elif index_name == opensearch_info['ner_index']:
-                    cls.delete_entity_sample(profile_name, similarity_id)
-                    return True
-                elif index_name == opensearch_info['agent_index']:
-                    cls.delete_agent_cot_sample(profile_name, similarity_id)
-                    return True
-                else:
-                    return False
-        return False
+            for i in range(len(search_res)):
+                similarity_sample = search_res[i]
+                similarity_score = similarity_sample["_score"]
+                similarity_id = similarity_sample['_id']
+                if similarity_score == 1.0:
+                    if index_name == opensearch_info['sql_index']:
+                        cls.delete_sample(profile_name, similarity_id)
+                    elif index_name == opensearch_info['ner_index']:
+                        cls.delete_entity_sample(profile_name, similarity_id)
+                    elif index_name == opensearch_info['agent_index']:
+                        cls.delete_agent_cot_sample(profile_name, similarity_id)
+                    else:
+                        return False
+        return True
 
     @classmethod
     def search_same_dimension_entity(cls, profile_name, top_k, index_name, embedding):
