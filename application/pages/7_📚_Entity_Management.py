@@ -190,11 +190,13 @@ def main():
                                 progress = (j * 1.0) / total_rows
                                 progress_bar.progress(progress, text=progress_text)
 
+                            progress_bar.empty()
                             progress_bar = st.progress(0)
+                            unique_total_row = len(unique_batch_data)
                             for k, (key, value) in enumerate(unique_batch_data.items(), 1):
                                 VectorStore.add_entity_dimension_batch_sample(current_profile, key, "", DIMENSION_VALUE,
                                                                               value["value_list"])
-                                progress = (k * 1.0) / total_rows
+                                progress = (k * 1.0) / unique_total_row
                                 upload_text = "Batch insert in progress. {} entities have been uploaded. Please wait.".format(str(k))
                                 progress_bar.progress(progress, text=upload_text)
 
