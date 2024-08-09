@@ -45,6 +45,22 @@ def get_history_by_user_profile(history_request : HistoryRequest):
     return service.get_history_by_user_profile(user_id, profile_name)
 
 
+@router.post("/get_sessions")
+def get_sessions(history_request: HistoryRequest):
+    user_id = history_request.user_id
+    return LogManagement.get_all_sessions(user_id, history_request.profile_name, history_request.log_type)
+
+
+@router.post("/get_history")
+def get_history_by_session(history_request: HistorySessionRequest):
+    user_id = base64.b64decode(history_request.user_id).decode('utf-8')
+    history_list = LogManagement.get_all_history_by_session(profile_name=history_request.profile_name, user_id=user_id,
+                                                            session_id=history_request.session_id,
+                                                            size=1000, log_type=history_request.log_type)
+    chat_history = format_chat_history(history_list, history_request.log_type)
+    return chat_history
+
+
 @router.post("/user_feedback")
 def user_feedback(input_data: FeedBackInput):
     feedback_type = input_data.feedback_type

@@ -24,3 +24,8 @@ class LogManagement:
     def get_all_history(cls):
         history_list = cls.query_log_dao.get_all_history()
         return history_list
+
+    @classmethod
+    def get_all_session(cls):
+        session_list = cls.query_log_dao.get_all_sessions()
+        return session_list

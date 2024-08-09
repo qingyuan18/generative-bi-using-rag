@@ -178,3 +178,6 @@ class DynamoQueryLogDao:
                 err.response["Error"]["Message"],
             )
             return []
+
+    def get_all_sessions(self):
+        return []
