@@ -178,7 +178,7 @@ def main():
                                 entity_item_table_info["table_name"] = table
                                 entity_item_table_info["column_name"] = column
                                 entity_item_table_info["value"] = value
-                                value_id = table + "#" + column + "value"
+                                value_id = table + "#" + column + "#" + "value"
                                 if entity in unique_batch_data:
                                     if value_id not in unique_batch_data[entity]["value_id"]:
                                         unique_batch_data[entity]["value_id"].append(value_id)
