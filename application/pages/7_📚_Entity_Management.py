@@ -187,7 +187,6 @@ def main():
                                     unique_batch_data[entity] = {}
                                     unique_batch_data[entity]["value_id"] = [value_id]
                                     unique_batch_data[entity]["value_list"] = [entity_item_table_info]
-                                VectorStore.add_entity_sample(current_profile, entity, "", DIMENSION_VALUE, entity_item_table_info)
                                 progress = (j * 1.0) / total_rows
                                 progress_bar.progress(progress, text=progress_text)
 
