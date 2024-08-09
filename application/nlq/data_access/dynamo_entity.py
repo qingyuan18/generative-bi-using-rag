@@ -75,12 +75,12 @@ class DynamoEntityDao:
             self.table = self.dynamodb.create_table(
                 TableName=self.table_name,
                 KeySchema=[
-                    {"AttributeName": "session_id", "KeyType": "HASH"},  # Partition key
-                    # {"AttributeName": "title", "KeyType": "RANGE"},  # Sort key
+                    {"AttributeName": "profile_name", "KeyType": "HASH"},  # Partition key
+                    {"AttributeName": "entity", "KeyType": "RANGE"},  # Sort key
                 ],
                 AttributeDefinitions=[
-                    {"AttributeName": "session_id", "AttributeType": "S"},
-                    # {"AttributeName": "conn_name", "AttributeType": "S"},
+                    {"AttributeName": "profile_name", "AttributeType": "S"},
+                    {"AttributeName": "entity", "AttributeType": "S"},
                 ],
                 BillingMode='PAY_PER_REQUEST',
             )
@@ -105,71 +105,49 @@ class DynamoEntityDao:
     def update(self, entity):
         self.table.put_item(Item=entity.to_dict())
 
-    def add_log(self, log_id, profile_name, user_id, session_id, sql, query, intent, log_info, log_type, time_str):
-        entity = DynamoQueryLogEntity(log_id, profile_name, user_id, session_id, sql, query, intent, log_info, log_type,
-                                      time_str)
-        self.add(entity)
-
-    def get_history_by_user_profile(self, user_id, profile_name):
+    def get_entity(self, profile_name: str, entity: str):
+        """Read an entity from the DynamoDB table"""
         try:
-            # First, we need to scan the table to find all items for the user and profile
-            response = self.table.scan(
-                FilterExpression=Key('user_id').eq(user_id) & Key('profile_name').eq(profile_name) & Key('log_type').eq(
-                    "chat_history")
-            )
+            response = self.table.get_item(Key={'profile_name': profile_name, 'entity': entity})
+            item = response.get('Item')
+            if item:
+                return DynamoEntity(**item)
+            else:
+                logger.info(f"Entity not found: {entity}")
+                return None
+        except ClientError as e:
+            logger.error(f"Couldn't read entity {entity}. Here's why: {e}")
+            return None
 
-            items = response['Items']
-
-            # DynamoDB might not return all items in a single response if the data set is large
-            while 'LastEvaluatedKey' in response:
-                response = self.table.scan(
-                    FilterExpression=Key('user_id').eq(user_id) & Key('profile_name').eq(profile_name) & Key(
-                        'log_type').eq("chat_history"),
-                    ExclusiveStartKey=response['LastEvaluatedKey']
-                )
-                items.extend(response['Items'])
-
-            # Sort the items by time_str to get them in chronological order
-            sorted_items = sorted(items, key=lambda x: x['time_str'])
-
-            return sorted_items
-
-        except ClientError as err:
-            logger.error(
-                "Couldn't get history for user %s and profile %s. Here's why: %s: %s",
-                user_id,
-                profile_name,
-                err.response["Error"]["Code"],
-                err.response["Error"]["Message"],
-            )
-            return []
-
-    def get_all_history(self):
+    def update_entity(self, entity: DynamoEntity):
+        """Update an existing entity in the DynamoDB table"""
         try:
-            # First, we need to scan the table to find all items for the user and profile
-            response = self.table.scan(
-                FilterExpression=Key('log_type').eq("chat_history")
+            response = self.table.update_item(
+                Key={'profile_name': entity.profile_name, 'entity': entity.entity},
+                UpdateExpression="set entity_type=:t, entity_count=:c, entity_table_info=:i, time_str=:s",
+                ExpressionAttributeValues={
+                    ':t': entity.entity_type,
+                    ':c': entity.entity_count,
+                    ':i': entity.entity_table_info,
+                    ':s': entity.time_str
+                },
+                ReturnValues="UPDATED_NEW"
             )
+            logger.info(f"Updated entity: {entity.entity}")
+            return True
+        except ClientError as e:
+            logger.error(f"Couldn't update entity {entity.entity}. Here's why: {e}")
+            return False
 
-            items = response['Items']
-
-            # DynamoDB might not return all items in a single response if the data set is large
-            while 'LastEvaluatedKey' in response:
-                response = self.table.scan(
-                    FilterExpression=Key('log_type').eq("chat_history"),
-                    ExclusiveStartKey=response['LastEvaluatedKey']
-                )
-                items.extend(response['Items'])
-
-            # Sort the items by time_str to get them in chronological order
-            sorted_items = sorted(items, key=lambda x: x['time_str'])
-
-            return sorted_items
-
-        except ClientError as err:
-            logger.error(
-                "Couldn't get history Here's why: %s: %s",
-                err.response["Error"]["Code"],
-                err.response["Error"]["Message"],
+    def delete_entity(self, profile_name: str, entity: str):
+        """Delete an entity from the DynamoDB table"""
+        try:
+            self.table.delete_item(
+                Key={'profile_name': profile_name, 'entity': entity}
             )
-            return []
+            logger.info(f"Deleted entity: {entity}")
+            return True
+        except ClientError as e:
+            logger.error(f"Couldn't delete entity {entity}. Here's why: {e}")
+            return False
+
