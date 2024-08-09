@@ -166,6 +166,7 @@ def main():
                         each_upload_data = read_file(uploaded_file)
                         if each_upload_data is not None:
                             total_rows = len(each_upload_data)
+                            unique_batch_data = {}
                             progress_bar = st.progress(0)
                             progress_text = "batch insert {} entity  in progress. Please wait.".format(uploaded_file.name)
                             for j, item in enumerate(each_upload_data.itertuples(), 1):
@@ -177,9 +178,27 @@ def main():
                                 entity_item_table_info["table_name"] = table
                                 entity_item_table_info["column_name"] = column
                                 entity_item_table_info["value"] = value
+                                value_id = table + "#" + column + "value"
+                                if entity in unique_batch_data:
+                                    if value_id not in unique_batch_data[entity]["value_id"]:
+                                        unique_batch_data[entity]["value_id"].append(value_id)
+                                        unique_batch_data[entity]["value_list"].append(entity_item_table_info)
+                                else:
+                                    unique_batch_data[entity] = {}
+                                    unique_batch_data[entity]["value_id"] = [value_id]
+                                    unique_batch_data[entity]["value_list"] = [entity_item_table_info]
                                 VectorStore.add_entity_sample(current_profile, entity, "", DIMENSION_VALUE, entity_item_table_info)
                                 progress = (j * 1.0) / total_rows
                                 progress_bar.progress(progress, text=progress_text)
+
+                            progress_bar = st.progress(0)
+                            for k, (key, value) in enumerate(unique_batch_data.items(), 1):
+                                VectorStore.add_entity_dimension_batch_sample(current_profile, key, "", DIMENSION_VALUE,
+                                                                              value["value_list"])
+                                progress = (k * 1.0) / total_rows
+                                upload_text = "Batch insert in progress. {} entities have been uploaded. Please wait.".format(str(k))
+                                progress_bar.progress(progress, text=upload_text)
+
                             progress_bar.empty()
                         st.success("{uploaded_file} uploaded successfully!".format(uploaded_file=uploaded_file.name))
 
