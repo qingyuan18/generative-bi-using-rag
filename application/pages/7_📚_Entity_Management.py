@@ -165,6 +165,7 @@ def main():
                                     str(k))
                                 progress_bar.progress(progress, text=upload_text)
                             progress_bar.empty()
+                        st.session_state.ner_refresh_view = True
                         st.success("{uploaded_file} uploaded successfully!".format(uploaded_file=uploaded_file.name))
 
         with batch_dimension_entity:
@@ -213,6 +214,7 @@ def main():
                                 progress_bar.progress(progress, text=upload_text)
 
                             progress_bar.empty()
+                        st.session_state.ner_refresh_view = True
                         st.success("{uploaded_file} uploaded successfully!".format(uploaded_file=uploaded_file.name))
 
     else:
