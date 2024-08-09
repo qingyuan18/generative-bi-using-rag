@@ -155,7 +155,6 @@ def main():
                                     unique_batch_data[entity] = ""
                                 unique_batch_data[entity] = comment
 
-                            progress_bar.empty()
                             progress_bar = st.progress(0)
                             unique_total_row = len(unique_batch_data)
                             for k, (key, value) in enumerate(unique_batch_data.items(), 1):
@@ -203,7 +202,6 @@ def main():
                                     unique_batch_data[entity]["value_list"] = []
                                     unique_batch_data[entity]["value_list"].append(entity_item_table_info)
 
-                            progress_bar.empty()
                             progress_bar = st.progress(0)
                             unique_total_row = len(unique_batch_data)
                             for k, (key, value) in enumerate(unique_batch_data.items(), 1):
