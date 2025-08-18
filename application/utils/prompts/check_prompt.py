@@ -7,7 +7,7 @@ from utils.prompts.generate_prompt import support_model_ids_map, prompt_map_dict
 logger = getLogger()
 
 model_id_list = ['mixtral-8x7b-instruct-0',  'llama3-70b-instruct-0', 'haiku-20240307v1-0', 'sonnet-20240229v1-0',
-                 'sonnet-3-5-20240620v1-0']
+                 'sonnet-3-5-20240620v1-0', 'sonnet-3-5-20241022v2-0', 'claude-3-7-sonnet-20250219v1-0', 'deepseek-r1-v1-0']
 
 required_syntax_map = {
     'text2sql': {
@@ -16,7 +16,10 @@ required_syntax_map = {
             'llama3-70b-instruct-0': ['dialect'],
             'haiku-20240307v1-0': ['dialect'],
             'sonnet-20240229v1-0': ['dialect'],
-            'sonnet-3-5-20240620v1-0': ['dialect']
+            'sonnet-3-5-20240620v1-0': ['dialect'],
+            'sonnet-3-5-20241022v2-0': ['dialect'],
+            'claude-3-7-sonnet-20250219v1-0': ['dialect'],
+            'deepseek-r1-v1-0': ['dialect']
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': [
@@ -58,6 +61,30 @@ required_syntax_map = {
                 'ner_info',
                 'sql_guidance',
                 'question'
+            ],
+            'sonnet-3-5-20241022v2-0': [
+                'dialect_prompt',
+                'sql_schema',
+                'examples',
+                'ner_info',
+                'sql_guidance',
+                'question'
+            ],
+            'claude-3-7-sonnet-20250219v1-0': [
+                'dialect_prompt',
+                'sql_schema',
+                'examples',
+                'ner_info',
+                'sql_guidance',
+                'question'
+            ],
+            'deepseek-r1-v1-0': [
+                'dialect_prompt',
+                'sql_schema',
+                'examples',
+                'ner_info',
+                'sql_guidance',
+                'question'
             ]
         }
     },
@@ -67,14 +94,20 @@ required_syntax_map = {
             'llama3-70b-instruct-0': [],
             'haiku-20240307v1-0': [],
             'sonnet-20240229v1-0': [],
-            'sonnet-3-5-20240620v1-0': []
+            'sonnet-3-5-20240620v1-0': [],
+            'sonnet-3-5-20241022v2-0': [],
+            'claude-3-7-sonnet-20250219v1-0': [],
+            'deepseek-r1-v1-0': []
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': ['question'],
             'llama3-70b-instruct-0': ['question'],
             'haiku-20240307v1-0': ['question'],
             'sonnet-20240229v1-0': ['question'],
-            'sonnet-3-5-20240620v1-0': ['question']
+            'sonnet-3-5-20240620v1-0': ['question'],
+            'sonnet-3-5-20241022v2-0': ['question'],
+            'claude-3-7-sonnet-20250219v1-0': ['question'],
+            'deepseek-r1-v1-0': ['question']
         },
     },
     'knowledge': {
@@ -83,14 +116,20 @@ required_syntax_map = {
             'llama3-70b-instruct-0': [],
             'haiku-20240307v1-0': [],
             'sonnet-20240229v1-0': [],
-            'sonnet-3-5-20240620v1-0': []
+            'sonnet-3-5-20240620v1-0': [],
+            'sonnet-3-5-20241022v2-0': [],
+            'claude-3-7-sonnet-20250219v1-0': [],
+            'deepseek-r1-v1-0': []
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': ['question'],
             'llama3-70b-instruct-0': ['question'],
             'haiku-20240307v1-0': ['question'],
             'sonnet-20240229v1-0': ['question'],
-            'sonnet-3-5-20240620v1-0': ['question']
+            'sonnet-3-5-20240620v1-0': ['question'],
+            'sonnet-3-5-20241022v2-0': ['question'],
+            'claude-3-7-sonnet-20250219v1-0': ['question'],
+            'deepseek-r1-v1-0': ['question']
         }
     },
     'agent': {
@@ -110,6 +149,15 @@ required_syntax_map = {
                                     'example_data'],
             'sonnet-3-5-20240620v1-0': ['table_schema_data',
                                     'sql_guidance',
+                                    'example_data'],
+            'sonnet-3-5-20241022v2-0': ['table_schema_data',
+                                    'sql_guidance',
+                                    'example_data'],
+            'claude-3-7-sonnet-20250219v1-0': ['table_schema_data',
+                                    'sql_guidance',
+                                    'example_data'],
+            'deepseek-r1-v1-0': ['table_schema_data',
+                                    'sql_guidance',
                                     'example_data']
         },
         'user_prompt': {
@@ -117,7 +165,10 @@ required_syntax_map = {
             'llama3-70b-instruct-0': ['question'],
             'haiku-20240307v1-0': ['question'],
             'sonnet-20240229v1-0': ['question'],
-            'sonnet-3-5-20240620v1-0': ['question']
+            'sonnet-3-5-20240620v1-0': ['question'],
+            'sonnet-3-5-20241022v2-0': ['question'],
+            'claude-3-7-sonnet-20250219v1-0': ['question'],
+            'deepseek-r1-v1-0': ['question']
         }
     },
     'agent_analyse': {
@@ -126,7 +177,10 @@ required_syntax_map = {
             'llama3-70b-instruct-0': [],
             'haiku-20240307v1-0': [],
             'sonnet-20240229v1-0': [],
-            'sonnet-3-5-20240620v1-0': []
+            'sonnet-3-5-20240620v1-0': [],
+            'sonnet-3-5-20241022v2-0': [],
+            'claude-3-7-sonnet-20250219v1-0': [],
+            'deepseek-r1-v1-0': []
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': [
@@ -138,7 +192,7 @@ required_syntax_map = {
                 'data'
             ],
             'haiku-20240307v1-0': [
-                'question'
+                'question',
                 'data'
             ],
             'sonnet-20240229v1-0': [
@@ -146,6 +200,18 @@ required_syntax_map = {
                 'data'
             ],
             'sonnet-3-5-20240620v1-0': [
+                'question',
+                'data'
+            ],
+            'sonnet-3-5-20241022v2-0': [
+                'question',
+                'data'
+            ],
+            'claude-3-7-sonnet-20250219v1-0': [
+                'question',
+                'data'
+            ],
+            'deepseek-r1-v1-0': [
                 'question',
                 'data'
             ]
@@ -157,7 +223,10 @@ required_syntax_map = {
             'llama3-70b-instruct-0': [],
             'haiku-20240307v1-0': [],
             'sonnet-20240229v1-0': [],
-            'sonnet-3-5-20240620v1-0': []
+            'sonnet-3-5-20240620v1-0': [],
+            'sonnet-3-5-20241022v2-0': [],
+            'claude-3-7-sonnet-20250219v1-0': [],
+            'deepseek-r1-v1-0': []
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': [
@@ -169,7 +238,7 @@ required_syntax_map = {
                 'data'
             ],
             'haiku-20240307v1-0': [
-                'question'
+                'question',
                 'data'
             ],
             'sonnet-20240229v1-0': [
@@ -177,6 +246,18 @@ required_syntax_map = {
                 'data'
             ],
             'sonnet-3-5-20240620v1-0': [
+                'question',
+                'data'
+            ],
+            'sonnet-3-5-20241022v2-0': [
+                'question',
+                'data'
+            ],
+            'claude-3-7-sonnet-20250219v1-0': [
+                'question',
+                'data'
+            ],
+            'deepseek-r1-v1-0': [
                 'question',
                 'data'
             ]
@@ -188,7 +269,10 @@ required_syntax_map = {
             'llama3-70b-instruct-0': [],
             'haiku-20240307v1-0': [],
             'sonnet-20240229v1-0': [],
-            'sonnet-3-5-20240620v1-0': []
+            'sonnet-3-5-20240620v1-0': [],
+            'sonnet-3-5-20241022v2-0': [],
+            'claude-3-7-sonnet-20250219v1-0': [],
+            'deepseek-r1-v1-0': []
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': [
@@ -200,7 +284,7 @@ required_syntax_map = {
                 'data'
             ],
             'haiku-20240307v1-0': [
-                'question'
+                'question',
                 'data'
             ],
             'sonnet-20240229v1-0': [
@@ -208,6 +292,18 @@ required_syntax_map = {
                 'data'
             ],
             'sonnet-3-5-20240620v1-0': [
+                'question',
+                'data'
+            ],
+            'sonnet-3-5-20241022v2-0': [
+                'question',
+                'data'
+            ],
+            'claude-3-7-sonnet-20250219v1-0': [
+                'question',
+                'data'
+            ],
+            'deepseek-r1-v1-0': [
                 'question',
                 'data'
             ]
@@ -219,14 +315,20 @@ required_syntax_map = {
             'llama3-70b-instruct-0': [],
             'haiku-20240307v1-0': [],
             'sonnet-20240229v1-0': [],
-            'sonnet-3-5-20240620v1-0': []
+            'sonnet-3-5-20240620v1-0': [],
+            'sonnet-3-5-20241022v2-0': [],
+            'claude-3-7-sonnet-20250219v1-0': [],
+            'deepseek-r1-v1-0': []
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': ['question'],
             'llama3-70b-instruct-0': ['question'],
             'haiku-20240307v1-0': ['question'],
             'sonnet-20240229v1-0': ['question'],
-            'sonnet-3-5-20240620v1-0': ['question']
+            'sonnet-3-5-20240620v1-0': ['question'],
+            'sonnet-3-5-20241022v2-0': ['question'],
+            'claude-3-7-sonnet-20250219v1-0': ['question'],
+            'deepseek-r1-v1-0': ['question']
         }
     },
     'query_rewrite': {
@@ -235,14 +337,20 @@ required_syntax_map = {
             'llama3-70b-instruct-0': [],
             'haiku-20240307v1-0': [],
             'sonnet-20240229v1-0': [],
-            'sonnet-3-5-20240620v1-0': []
+            'sonnet-3-5-20240620v1-0': [],
+            'sonnet-3-5-20241022v2-0': [],
+            'claude-3-7-sonnet-20250219v1-0': [],
+            'deepseek-r1-v1-0': []
         },
         'user_prompt': {
             'mixtral-8x7b-instruct-0': ['chat_history', 'question'],
             'llama3-70b-instruct-0': ['chat_history', 'question'],
             'haiku-20240307v1-0': ['chat_history', 'question'],
             'sonnet-20240229v1-0': ['chat_history', 'question'],
-            'sonnet-3-5-20240620v1-0': ['chat_history', 'question']
+            'sonnet-3-5-20240620v1-0': ['chat_history', 'question'],
+            'sonnet-3-5-20241022v2-0': ['chat_history', 'question'],
+            'claude-3-7-sonnet-20250219v1-0': ['chat_history', 'question'],
+            'deepseek-r1-v1-0': ['chat_history', 'question']
         }
     }
 }

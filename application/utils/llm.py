@@ -217,6 +217,8 @@ def invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens=2048, with
     model_config = {}
     if model_id.startswith('anthropic.claude-3'):
         response = invoke_model_claude3(model_id, system_prompt, messages, max_tokens, with_response_stream)
+    elif model_id.startswith('deepseek.'):
+        response = invoke_model_claude3(model_id, system_prompt, messages, max_tokens, with_response_stream)
     elif model_id.startswith('mistral.mixtral-8x7b'):
         response = invoke_mixtral_8x7b(model_id, system_prompt, messages, max_tokens, with_response_stream)
     elif model_id.startswith('meta.llama3-70b'):
@@ -236,7 +238,7 @@ def invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens=2048, with
         response = invoke_model_sagemaker_endpoint(endpoint_name, body, "LLM", with_response_stream, llm_region)
     logger.info(f'{response=}')
     model_response.response = response
-    if model_id.startswith('anthropic.claude-3'):
+    if model_id.startswith('anthropic.claude-3') or model_id.startswith('deepseek.'):
         model_response.token_info = response.get("usage", {})
     else:
         model_response.token_info = {}

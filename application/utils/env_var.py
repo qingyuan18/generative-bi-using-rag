@@ -126,3 +126,25 @@ if embedding_info["embedding_platform"] == "bedrock":
 else:
     SAGEMAKER_EMBEDDING_REGION = embedding_info["embedding_region"]
     SAGEMAKER_ENDPOINT_EMBEDDING = embedding_info["embedding_name"]
+
+# Bedrock Model IDs configuration
+DEFAULT_BEDROCK_MODEL_IDS = [
+    'anthropic.claude-3-sonnet-20240229-v1:0',
+    'anthropic.claude-3-5-sonnet-20240620-v1:0',
+    'anthropic.claude-3-haiku-20240307-v1:0',
+    'mistral.mixtral-8x7b-instruct-v0:1',
+    'meta.llama3-70b-instruct-v1:0',
+    'anthropic.claude-3-7-sonnet-20250219-v1:0',
+    'deepseek.r1-v1:0',
+    'anthropic.claude-3-5-sonnet-20241022-v2:0'
+]
+
+def get_bedrock_model_ids():
+    """Get Bedrock model IDs from environment variable or return default list"""
+    model_ids_str = os.getenv('BEDROCK_MODEL_IDS', '')
+    if model_ids_str:
+        # Split by comma and strip whitespace
+        return [model_id.strip() for model_id in model_ids_str.split(',') if model_id.strip()]
+    return DEFAULT_BEDROCK_MODEL_IDS
+
+BEDROCK_MODEL_IDS = get_bedrock_model_ids()
