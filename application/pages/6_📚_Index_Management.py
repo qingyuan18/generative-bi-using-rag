@@ -408,10 +408,9 @@ def main():
             if current_profile is not None:
                 total_sample_count = len(VectorStore.get_all_samples(current_profile))
                 st.write(f"Total [{total_sample_count}] samples to be tested !")
-                model_ids = ['anthropic.claude-3-sonnet-20240229-v1:0', 'anthropic.claude-3-5-sonnet-20240620-v1:0',
-                             'anthropic.claude-3-opus-20240229-v1:0',
-                             'anthropic.claude-3-haiku-20240307-v1:0', 'mistral.mixtral-8x7b-instruct-v0:1',
-                             'meta.llama3-70b-instruct-v1:0']
+                # Import BEDROCK_MODEL_IDS from configuration
+                from utils.constant import BEDROCK_MODEL_IDS
+                model_ids = BEDROCK_MODEL_IDS.copy()
                 if 'current_model_id' in st.session_state.keys() and st.session_state.current_model_id != "" and st.session_state.current_model_id in model_ids:
                     model_index = model_ids.index(st.session_state.current_model_id)
                     model_type = st.selectbox("Choose your model", model_ids, index=model_index)
