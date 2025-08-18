@@ -492,6 +492,16 @@ The question is : {question}
 
 """
 
+# Copy prompts for new Claude models
+query_rewrite_system_prompt_dict['sonnet-3-5-20241022v2-0'] = query_rewrite_system_prompt_dict['sonnet-3-5-20240620v1-0']
+query_rewrite_user_prompt_dict['sonnet-3-5-20241022v2-0'] = query_rewrite_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+query_rewrite_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = query_rewrite_system_prompt_dict['sonnet-3-5-20240620v1-0']
+query_rewrite_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = query_rewrite_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+query_rewrite_system_prompt_dict['deepseek-r1-v1-0'] = query_rewrite_system_prompt_dict['sonnet-3-5-20240620v1-0']
+query_rewrite_user_prompt_dict['deepseek-r1-v1-0'] = query_rewrite_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
 intent_system_prompt_dict['mixtral-8x7b-instruct-0'] = """You are an intent classifier and entity extractor, and you need to perform intent classification and entity extraction on search queries.
 Background: I want to query data in the database, and you need to help me determine the user's relevant intent and extract the keywords from the query statement. Finally, return a JSON structure.
 
@@ -772,6 +782,16 @@ The question is : {question}
 intent_user_prompt_dict['sonnet-3-5-20240620v1-0'] = """
 The question is : {question}
 """
+
+# Copy intent prompts for new models
+intent_system_prompt_dict['sonnet-3-5-20241022v2-0'] = intent_system_prompt_dict['sonnet-3-5-20240620v1-0']
+intent_user_prompt_dict['sonnet-3-5-20241022v2-0'] = intent_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+intent_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = intent_system_prompt_dict['sonnet-3-5-20240620v1-0']
+intent_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = intent_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+intent_system_prompt_dict['deepseek-r1-v1-0'] = intent_system_prompt_dict['sonnet-3-5-20240620v1-0']
+intent_user_prompt_dict['deepseek-r1-v1-0'] = intent_user_prompt_dict['sonnet-3-5-20240620v1-0']
 
 # 知识库检索意图
 knowledge_system_prompt_dict['mixtral-8x7b-instruct-0'] = """
@@ -1183,9 +1203,19 @@ Please generate queries based on the input query.
 """
 
 knowledge_user_prompt_dict['sonnet-3-5-20240620v1-0'] = """
-Here is the input query: {question}. 
+Here is the input query: {question}.
 Please generate queries based on the input query.
 """
+
+# Copy knowledge prompts for new models
+knowledge_system_prompt_dict['sonnet-3-5-20241022v2-0'] = knowledge_system_prompt_dict['sonnet-3-5-20240620v1-0']
+knowledge_user_prompt_dict['sonnet-3-5-20241022v2-0'] = knowledge_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+knowledge_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = knowledge_system_prompt_dict['sonnet-3-5-20240620v1-0']
+knowledge_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = knowledge_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+knowledge_system_prompt_dict['deepseek-r1-v1-0'] = knowledge_system_prompt_dict['sonnet-3-5-20240620v1-0']
+knowledge_user_prompt_dict['deepseek-r1-v1-0'] = knowledge_user_prompt_dict['sonnet-3-5-20240620v1-0']
 
 # agent任务拆分
 agent_system_prompt_dict['mixtral-8x7b-instruct-0'] = """
@@ -1393,6 +1423,16 @@ agent_user_prompt_dict['sonnet-3-5-20240620v1-0'] = """
 The user question is : {question}
 """
 
+# Copy agent prompts for new models
+agent_system_prompt_dict['sonnet-3-5-20241022v2-0'] = agent_system_prompt_dict['sonnet-3-5-20240620v1-0']
+agent_user_prompt_dict['sonnet-3-5-20241022v2-0'] = agent_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+agent_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = agent_system_prompt_dict['sonnet-3-5-20240620v1-0']
+agent_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = agent_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
+agent_system_prompt_dict['deepseek-r1-v1-0'] = agent_system_prompt_dict['sonnet-3-5-20240620v1-0']
+agent_user_prompt_dict['deepseek-r1-v1-0'] = agent_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
 # agent data analyse prompt
 agent_analyse_system_prompt_dict['mixtral-8x7b-instruct-0'] = """
 You are a data analysis expert in the retail industry
@@ -1413,6 +1453,11 @@ You are a data analysis expert in the retail industry
 agent_analyse_system_prompt_dict['sonnet-3-5-20240620v1-0'] = """
 You are a data analysis expert in the retail industry
 """
+
+# Copy agent_analyse prompts for new models
+agent_analyse_system_prompt_dict['sonnet-3-5-20241022v2-0'] = agent_analyse_system_prompt_dict['sonnet-3-5-20240620v1-0']
+agent_analyse_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = agent_analyse_system_prompt_dict['sonnet-3-5-20240620v1-0']
+agent_analyse_system_prompt_dict['deepseek-r1-v1-0'] = agent_analyse_system_prompt_dict['sonnet-3-5-20240620v1-0']
 
 agent_analyse_user_prompt_dict['mixtral-8x7b-instruct-0'] = """
 As a professional data analyst, you are now asked a question by a user, and you need to analyze the data provided.
@@ -1499,6 +1544,11 @@ The data related to the question is：{data}
 
 """
 
+# Copy agent_analyse user prompts for new models
+agent_analyse_user_prompt_dict['sonnet-3-5-20241022v2-0'] = agent_analyse_user_prompt_dict['sonnet-3-5-20240620v1-0']
+agent_analyse_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = agent_analyse_user_prompt_dict['sonnet-3-5-20240620v1-0']
+agent_analyse_user_prompt_dict['deepseek-r1-v1-0'] = agent_analyse_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
 # data summary prompt
 
 data_summary_system_prompt_dict['mixtral-8x7b-instruct-0'] = """
@@ -1520,6 +1570,11 @@ You are a data analysis expert in the retail industry
 data_summary_system_prompt_dict['sonnet-3-5-20240620v1-0'] = """
 You are a data analysis expert in the retail industry
 """
+
+# Copy data_summary system prompts for new models
+data_summary_system_prompt_dict['sonnet-3-5-20241022v2-0'] = data_summary_system_prompt_dict['sonnet-3-5-20240620v1-0']
+data_summary_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = data_summary_system_prompt_dict['sonnet-3-5-20240620v1-0']
+data_summary_system_prompt_dict['deepseek-r1-v1-0'] = data_summary_system_prompt_dict['sonnet-3-5-20240620v1-0']
 
 data_summary_user_prompt_dict['mixtral-8x7b-instruct-0'] = """
 Your task is to analyze the given data and describe it in natural language. 
@@ -1574,7 +1629,7 @@ The data is：{data}
 """
 
 data_summary_user_prompt_dict['sonnet-3-5-20240620v1-0'] = """
-Your task is to analyze the given data and describe it in natural language. 
+Your task is to analyze the given data and describe it in natural language.
 
 <instructions>
 - Transforming data into natural language, including all key data as much as possible
@@ -1585,6 +1640,11 @@ The user question is：{question}
 
 The data is：{data}
 """
+
+# Copy data_summary user prompts for new models
+data_summary_user_prompt_dict['sonnet-3-5-20241022v2-0'] = data_summary_user_prompt_dict['sonnet-3-5-20240620v1-0']
+data_summary_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = data_summary_user_prompt_dict['sonnet-3-5-20240620v1-0']
+data_summary_user_prompt_dict['deepseek-r1-v1-0'] = data_summary_user_prompt_dict['sonnet-3-5-20240620v1-0']
 
 # data visualization selection
 
@@ -1608,6 +1668,11 @@ You are a data analysis and visualization expert proficient in Python
 data_visualization_system_prompt_dict['sonnet-3-5-20240620v1-0'] = """
 You are a data analysis and visualization expert proficient in Python
 """
+
+# Copy data_visualization system prompts for new models
+data_visualization_system_prompt_dict['sonnet-3-5-20241022v2-0'] = data_visualization_system_prompt_dict['sonnet-3-5-20240620v1-0']
+data_visualization_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = data_visualization_system_prompt_dict['sonnet-3-5-20240620v1-0']
+data_visualization_system_prompt_dict['deepseek-r1-v1-0'] = data_visualization_system_prompt_dict['sonnet-3-5-20240620v1-0']
 
 data_visualization_user_prompt_dict['mixtral-8x7b-instruct-0'] = """
 You are a data analysis expert, and now you need to choose the appropriate visualization format based on the user's questions and data.
@@ -1794,6 +1859,11 @@ The user question is :  {question}
 The data is : {data}
 """
 
+# Copy data_visualization user prompts for new models
+data_visualization_user_prompt_dict['sonnet-3-5-20241022v2-0'] = data_visualization_user_prompt_dict['sonnet-3-5-20240620v1-0']
+data_visualization_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = data_visualization_user_prompt_dict['sonnet-3-5-20240620v1-0']
+data_visualization_user_prompt_dict['deepseek-r1-v1-0'] = data_visualization_user_prompt_dict['sonnet-3-5-20240620v1-0']
+
 # suggest question prompt
 
 suggest_question_system_prompt_dict['mixtral-8x7b-instruct-0'] = """
@@ -1851,6 +1921,11 @@ You are a query generator, and you need to generate queries based on the input q
 </rules>
 """
 
+# Copy suggest_question system prompts for new models
+suggest_question_system_prompt_dict['sonnet-3-5-20241022v2-0'] = suggest_question_system_prompt_dict['sonnet-3-5-20240620v1-0']
+suggest_question_system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = suggest_question_system_prompt_dict['sonnet-3-5-20240620v1-0']
+suggest_question_system_prompt_dict['deepseek-r1-v1-0'] = suggest_question_system_prompt_dict['sonnet-3-5-20240620v1-0']
+
 suggest_question_user_prompt_dict['mixtral-8x7b-instruct-0'] = """
 Here is the input query: {question}. 
 Please generate queries based on the input query.
@@ -1872,9 +1947,14 @@ Please generate queries based on the input query.
 """
 
 suggest_question_user_prompt_dict['sonnet-3-5-20240620v1-0'] = """
-Here is the input query: {question}. 
+Here is the input query: {question}.
 Please generate queries based on the input query.
 """
+
+# Copy suggest_question user prompts for new models
+suggest_question_user_prompt_dict['sonnet-3-5-20241022v2-0'] = suggest_question_user_prompt_dict['sonnet-3-5-20240620v1-0']
+suggest_question_user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = suggest_question_user_prompt_dict['sonnet-3-5-20240620v1-0']
+suggest_question_user_prompt_dict['deepseek-r1-v1-0'] = suggest_question_user_prompt_dict['sonnet-3-5-20240620v1-0']
 
 user_prompt_dict['mixtral-8x7b-instruct-0'] = """
 {dialect_prompt}
@@ -2112,6 +2192,11 @@ The question is : {question}
 
 """
 
+# Copy text2sql user prompts for new models
+user_prompt_dict['sonnet-3-5-20241022v2-0'] = user_prompt_dict['sonnet-3-5-20240620v1-0']
+user_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = user_prompt_dict['sonnet-3-5-20240620v1-0']
+user_prompt_dict['deepseek-r1-v1-0'] = user_prompt_dict['sonnet-3-5-20240620v1-0']
+
 system_prompt_dict['mixtral-8x7b-instruct-0'] = """
 You are a data analysis expert and proficient in {dialect}.
 """
@@ -2131,6 +2216,11 @@ You are a data analysis expert and proficient in {dialect}.
 system_prompt_dict['sonnet-3-5-20240620v1-0'] = """
 You are a data analysis expert and proficient in {dialect}.
 """
+
+# Copy text2sql system prompts for new models
+system_prompt_dict['sonnet-3-5-20241022v2-0'] = system_prompt_dict['sonnet-3-5-20240620v1-0']
+system_prompt_dict['claude-3-7-sonnet-20250219v1-0'] = system_prompt_dict['sonnet-3-5-20240620v1-0']
+system_prompt_dict['deepseek-r1-v1-0'] = system_prompt_dict['sonnet-3-5-20240620v1-0']
 
 class SystemPromptMapper:
     def __init__(self):
