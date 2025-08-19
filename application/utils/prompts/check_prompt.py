@@ -416,21 +416,44 @@ def check_model_id_prompt():
                     prompt_map_flag = True
 
             for prompt_type in prompt_map_dict:
-                origin_system_prompt = prompt_map_dict[prompt_type].get('system_prompt')
-                origin_user_prompt = prompt_map_dict[prompt_type].get('user_prompt')
+                origin_system_prompt = prompt_map_dict[prompt_type].get('system_prompt', {})
+                origin_user_prompt = prompt_map_dict[prompt_type].get('user_prompt', {})
 
                 db_system_prompt = prompt_map[prompt_type].get('system_prompt', {})
                 db_user_prompt = prompt_map[prompt_type].get('user_prompt', {})
 
                 for model_id in model_ids:
+                    # Handle system prompt
                     if model_id not in db_system_prompt:
-                        prompt_map[prompt_type]['system_prompt'][model_id] = origin_system_prompt[model_id]
-                        prompt_map_flag = True
-                        logger.warning(f"Model ID {model_id} is missing in system prompt of {prompt_type}")
+                        if model_id in origin_system_prompt:
+                            prompt_map[prompt_type]['system_prompt'][model_id] = origin_system_prompt[model_id]
+                            prompt_map_flag = True
+                            logger.warning(f"Model ID {model_id} is missing in system prompt of {prompt_type}")
+                        else:
+                            # Use fallback model if the new model doesn't exist
+                            fallback_model = 'sonnet-3-5-20240620v1-0'
+                            if fallback_model in origin_system_prompt:
+                                prompt_map[prompt_type]['system_prompt'][model_id] = origin_system_prompt[fallback_model]
+                                prompt_map_flag = True
+                                logger.warning(f"Model ID {model_id} not found in origin system prompt for {prompt_type}, using fallback {fallback_model}")
+                            else:
+                                logger.error(f"Model ID {model_id} and fallback {fallback_model} not found in origin system prompt for {prompt_type}")
+
+                    # Handle user prompt
                     if model_id not in db_user_prompt:
-                        prompt_map[prompt_type]['user_prompt'][model_id] = origin_user_prompt[model_id]
-                        prompt_map_flag = True
-                        logger.warning(f"Model ID {model_id} is missing in user prompt of {prompt_type}")
+                        if model_id in origin_user_prompt:
+                            prompt_map[prompt_type]['user_prompt'][model_id] = origin_user_prompt[model_id]
+                            prompt_map_flag = True
+                            logger.warning(f"Model ID {model_id} is missing in user prompt of {prompt_type}")
+                        else:
+                            # Use fallback model if the new model doesn't exist
+                            fallback_model = 'sonnet-3-5-20240620v1-0'
+                            if fallback_model in origin_user_prompt:
+                                prompt_map[prompt_type]['user_prompt'][model_id] = origin_user_prompt[fallback_model]
+                                prompt_map_flag = True
+                                logger.warning(f"Model ID {model_id} not found in origin user prompt for {prompt_type}, using fallback {fallback_model}")
+                            else:
+                                logger.error(f"Model ID {model_id} and fallback {fallback_model} not found in origin user prompt for {prompt_type}")
 
             if prompt_map_flag:
                 ProfileManagement.update_table_prompt_map(profile_name, prompt_map)

@@ -134,9 +134,9 @@ DEFAULT_BEDROCK_MODEL_IDS = [
     'anthropic.claude-3-haiku-20240307-v1:0',
     'mistral.mixtral-8x7b-instruct-v0:1',
     'meta.llama3-70b-instruct-v1:0',
-    'anthropic.claude-3-7-sonnet-20250219-v1:0',
-    'deepseek.r1-v1:0',
-    'anthropic.claude-3-5-sonnet-20241022-v2:0'
+    'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
+    'us.deepseek.r1-v1:0',
+    'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
 ]
 
 def get_bedrock_model_ids():
