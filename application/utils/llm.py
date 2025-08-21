@@ -109,6 +109,46 @@ def invoke_llama_70b(model_id, system_prompt, user_prompt, max_tokens, with_resp
         logger.error(e)
 
 
+def invoke_deepseek_r1(model_id, system_prompt, messages, max_tokens, with_response_stream=False):
+    """
+    Invokes the DeepSeek R1 model to run an inference using the input
+    provided in the request body.
+
+    :param model_id: The model ID for DeepSeek R1
+    :param system_prompt: The system prompt
+    :param messages: The user messages
+    :param max_tokens: Maximum tokens to generate
+    :param with_response_stream: Whether to use streaming response
+    :return: Response from the model
+    """
+    # DeepSeek R1 uses a simple prompt format, not messages
+    user_content = messages[0]['content'] if messages else ""
+
+    # Format the prompt according to DeepSeek R1 requirements
+    formatted_prompt = f"{system_prompt}\n\n{user_content}"
+
+    body = json.dumps(
+        {
+            "prompt": formatted_prompt,
+            "max_tokens": max_tokens,
+            "temperature": 0.01,
+            "top_p": 0.9
+        }
+    )
+
+    try:
+        if with_response_stream:
+            response = get_bedrock_client().invoke_model_with_response_stream(body=body, modelId=model_id)
+            return response
+        else:
+            response = get_bedrock_client().invoke_model(body=body, modelId=model_id)
+            response_body = json.loads(response.get('body').read())
+            return response_body
+    except Exception as e:
+        logger.error(f"Couldn't invoke DeepSeek R1: {e}")
+        raise
+
+
 def invoke_mixtral_8x7b(model_id, system_prompt, messages, max_tokens, with_response_stream=False):
     """
     Invokes the Mixtral 8c7B model to run an inference using the input
@@ -215,10 +255,10 @@ def invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens=2048, with
     model_response = ModelResponse()
 
     model_config = {}
-    if model_id.startswith('anthropic.claude-3'):
+    if model_id.startswith('anthropic.claude-3') or model_id.startswith('us.anthropic.claude-3'):
         response = invoke_model_claude3(model_id, system_prompt, messages, max_tokens, with_response_stream)
-    elif model_id.startswith('deepseek.'):
-        response = invoke_model_claude3(model_id, system_prompt, messages, max_tokens, with_response_stream)
+    elif model_id.startswith('deepseek.') or model_id.startswith('us.deepseek.'):
+        response = invoke_deepseek_r1(model_id, system_prompt, messages, max_tokens, with_response_stream)
     elif model_id.startswith('mistral.mixtral-8x7b'):
         response = invoke_mixtral_8x7b(model_id, system_prompt, messages, max_tokens, with_response_stream)
     elif model_id.startswith('meta.llama3-70b'):
@@ -238,7 +278,8 @@ def invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens=2048, with
         response = invoke_model_sagemaker_endpoint(endpoint_name, body, "LLM", with_response_stream, llm_region)
     logger.info(f'{response=}')
     model_response.response = response
-    if model_id.startswith('anthropic.claude-3') or model_id.startswith('deepseek.'):
+    if (model_id.startswith('anthropic.claude-3') or model_id.startswith('us.anthropic.claude-3') or
+        model_id.startswith('deepseek.') or model_id.startswith('us.deepseek.')):
         model_response.token_info = response.get("usage", {})
     else:
         model_response.token_info = {}
@@ -249,6 +290,11 @@ def invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens=2048, with
         output_format = model_config.output_format
         response = eval(output_format)
         model_response.text = response
+        return model_response
+    elif model_id.startswith('deepseek.') or model_id.startswith('us.deepseek.'):
+        # DeepSeek R1 response format: {"choices": [{"text": "...", "stop_reason": "..."}]}
+        final_response = response.get("choices", [{}])[0].get("text", "")
+        model_response.text = final_response
         return model_response
     else:
         final_response = response.get("content")[0].get("text")
@@ -275,11 +321,21 @@ def get_agent_cot_task(model_id, prompt_map, search_box, ddl, agent_cot_example=
         model_response = invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens, False)
         final_response = model_response.text
         logger.info(f'{final_response=}')
-        intent_result_dict = json_parse.parse(final_response)
+
+        try:
+            intent_result_dict = json_parse.parse(final_response)
+            # Ensure the result is a dictionary
+            if not isinstance(intent_result_dict, dict):
+                logger.warning(f"Agent COT parsing returned non-dict type: {type(intent_result_dict)}, using default")
+                return default_agent_cot_task, model_response
+        except Exception as parse_e:
+            logger.error(f"Failed to parse agent COT response: {parse_e}, using default")
+            return default_agent_cot_task, model_response
+
         return intent_result_dict, model_response
     except Exception as e:
         logger.error("get_agent_cot_task is error:{}".format(e))
-        return default_agent_cot_task
+        return default_agent_cot_task, None
 
 
 def data_analyse_tool(model_id, prompt_map, search_box, sql_data, search_type):
@@ -305,7 +361,17 @@ def get_query_intent(model_id, search_box, prompt_map):
     model_response = invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens, False)
     final_response = model_response.text
     logger.info(f'{final_response=}')
-    intent_result_dict = json_parse.parse(final_response)
+
+    try:
+        intent_result_dict = json_parse.parse(final_response)
+        # Ensure the result is a dictionary
+        if not isinstance(intent_result_dict, dict):
+            logger.warning(f"Intent parsing returned non-dict type: {type(intent_result_dict)}, using default")
+            intent_result_dict = default_intent
+    except Exception as e:
+        logger.error(f"Failed to parse intent response: {e}, using default intent")
+        intent_result_dict = default_intent
+
     return intent_result_dict, model_response
 
 
@@ -317,7 +383,17 @@ def get_query_rewrite(model_id, search_box, prompt_map, chat_history):
     model_response = invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens, False)
     final_response = model_response.text
     logger.info(f'{final_response=}')
-    query_rewrite_result = json_parse.parse(final_response)
+
+    try:
+        query_rewrite_result = json_parse.parse(final_response)
+        # Ensure the result is a dictionary
+        if not isinstance(query_rewrite_result, dict):
+            logger.warning(f"Query rewrite parsing returned non-dict type: {type(query_rewrite_result)}, using default")
+            query_rewrite_result = query_rewrite
+    except Exception as e:
+        logger.error(f"Failed to parse query rewrite response: {e}, using default")
+        query_rewrite_result = query_rewrite
+
     return query_rewrite_result, model_response
 
 
@@ -339,11 +415,21 @@ def select_data_visualization_type(model_id, search_box, search_data, prompt_map
         max_tokens = 2048
         model_response = invoke_llm_model(model_id, system_prompt, user_prompt, max_tokens, False)
         final_response = model_response.text
-        data_visualization_dict = json_parse.parse(final_response)
+
+        try:
+            data_visualization_dict = json_parse.parse(final_response)
+            # Ensure the result is a dictionary
+            if not isinstance(data_visualization_dict, dict):
+                logger.warning(f"Data visualization parsing returned non-dict type: {type(data_visualization_dict)}, using default")
+                return default_data_visualization, model_response
+        except Exception as parse_e:
+            logger.error(f"Failed to parse data visualization response: {parse_e}, using default")
+            return default_data_visualization, model_response
+
         return data_visualization_dict, model_response
     except Exception as e:
         logger.error("select_data_visualization_type is error {}", e)
-        return default_data_visualization
+        return default_data_visualization, None
 
 
 def data_visualization(model_id, search_box, search_data, prompt_map):
